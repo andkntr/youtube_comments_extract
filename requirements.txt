@@ -1,0 +1,4 @@
+flask
+gunicorn
+google-api-python-client
+pandas
