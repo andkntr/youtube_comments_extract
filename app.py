@@ -4,6 +4,7 @@ import io
 import csv
 from flask import Flask, request, render_template, send_file
 from googleapiclient.discovery import build
+import statistics
 
 app = Flask(__name__)
 
@@ -13,11 +14,9 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     projects = [
-    {
-        "name": "YouTubeコメント抽出",
-        "description": "指定したYouTube動画のコメント（返信含む）をCSVでダウンロードできます。",
-        "url": "/comments"
-    }]
+        {"name": "YouTubeコメント抽出", "description": "動画のコメント（返信含む）をCSVで出力", "url": "/comments"},
+        {"name": "チャンネル健診", "description": "チャンネルの公開サマリ＋直近動画の統計をCSVで出力", "url": "/channel-health"},
+    ]
     return render_template("index.html", projects=projects)
 
 
@@ -139,6 +138,146 @@ def comments():
         )
 
     return render_template("comments.html")
+
+
+# =========================
+# チャンネル健診（APIキーのみ）
+# =========================
+import csv
+
+def extract_channel_id(raw: str):
+    """チャンネルID/URL/@ハンドルを受け取り、channelId を返す"""
+    s = raw.strip()
+
+    # 1) そのまま channelId っぽい（UCから始まる24文字）
+    m = re.match(r'^(UC[0-9A-Za-z_-]{22})$', s)
+    if m:
+        return m.group(1)
+
+    # 2) URL の /channel/UCxxxx 形式
+    m = re.search(r'/channel/(UC[0-9A-Za-z_-]{22})', s)
+    if m:
+        return m.group(1)
+
+    # 3) @ハンドル（URL or 文字列）
+    m = re.search(r'@([A-Za-z0-9._-]+)', s)
+    if m:
+        handle = m.group(1)
+        # handle は channels.list で直接は引けないので search で取得
+        res = youtube.search().list(
+            part="snippet",
+            q=f"@{handle}",
+            type="channel",
+            maxResults=1
+        ).execute()
+        items = res.get("items", [])
+        if items:
+            return items[0]["snippet"]["channelId"]
+
+    # 4) その他（カスタムURL等） → 最後のセグメントでチャンネル検索
+    tail = s.rstrip('/').split('/')[-1]
+    if tail:
+        res = youtube.search().list(
+            part="snippet",
+            q=tail,
+            type="channel",
+            maxResults=1
+        ).execute()
+        items = res.get("items", [])
+        if items:
+            return items[0]["snippet"]["channelId"]
+
+    return None
+
+
+def fetch_channel_summary(channel_id: str):
+    """channels.list で公開サマリを取得"""
+    res = youtube.channels().list(
+        part="snippet,statistics",
+        id=channel_id,
+        maxResults=1
+    ).execute()
+    items = res.get("items", [])
+    if not items:
+        return None
+
+    snip = items[0]["snippet"]
+    stat = items[0]["statistics"]
+    return {
+        "channelId": channel_id,
+        "チャンネル名": snip.get("title", ""),
+        "説明": snip.get("description", ""),
+        "国": snip.get("country", ""),
+        "開設日": snip.get("publishedAt", ""),
+
+        "登録者数": stat.get("subscriberCount", ""),
+        "総再生回数": stat.get("viewCount", ""),
+        "総動画数": stat.get("videoCount", "")
+    }
+
+
+def fetch_recent_videos(channel_id: str, max_results: int = 10):
+    sres = youtube.search().list(
+        part="snippet",
+        channelId=channel_id,
+        type="video",
+        order="date",
+        maxResults=min(max_results, 50)
+    ).execute()
+    ids = [it["id"]["videoId"] for it in sres.get("items", [])]
+
+    videos = []
+    for i in range(0, len(ids), 50):
+        chunk = ids[i:i+50]
+        vres = youtube.videos().list(
+            part="snippet,statistics,contentDetails",
+            id=",".join(chunk)
+        ).execute()
+        for v in vres.get("items", []):
+            vs = v.get("statistics", {})
+            sn = v.get("snippet", {})
+            videos.append({
+                "動画ID": v.get("id", ""),
+                "タイトル": sn.get("title", ""),
+                "公開日": sn.get("publishedAt", ""),
+                "再生数": int(vs.get("viewCount", 0)),
+                "高評価数": int(vs.get("likeCount", 0)),
+                "コメント数": int(vs.get("commentCount", 0)),
+                "サムネイル": sn.get("thumbnails", {}).get("medium", {}).get("url", ""),
+                "URL": f'https://www.youtube.com/watch?v={v.get("id","")}'
+            })
+    return videos
+
+
+
+import statistics
+
+@app.route("/channel-health", methods=["GET", "POST"])
+def channel_health():
+    if request.method == "POST":
+        raw = request.form.get("channel", "")
+        channel_id = extract_channel_id(raw)
+        if not channel_id:
+            return "チャンネルが見つかりませんでした"
+
+        summary = fetch_channel_summary(channel_id)
+        videos = fetch_recent_videos(channel_id, max_results=10)
+
+        # 平均値・中央値
+        views = [v["再生数"] for v in videos if v["再生数"] > 0]
+        likes = [v["高評価数"] for v in videos if v["高評価数"] > 0]
+
+        stats = {
+            "平均再生数": int(statistics.mean(views)) if views else 0,
+            "中央値再生数": int(statistics.median(views)) if views else 0,
+            "平均いいね率": f"{(statistics.mean([l/v for l, v in zip(likes, views) if v > 0])*100):.2f}%" if views and likes else "N/A"
+        }
+
+        return render_template("channel_health.html", summary=summary, videos=videos, stats=stats)
+
+    return render_template("channel_health.html", summary=None, videos=None, stats=None)
+
+
 
 
 if __name__ == "__main__":
