@@ -15,6 +15,10 @@ from datetime import datetime
 from plotly.subplots import make_subplots
 from googleapiclient.discovery import build
 import io 
+import os
+
+
+
 
 
 app = Flask(__name__)
@@ -352,7 +356,12 @@ YOUTUBEコメント抽出機能
 """
 
 # ---- YouTube API キー ----
-API_KEY = "AIzaSyCb_cnx7_6oIK3Ojin2_xBVzDqGywNmoXI"  # Google Cloudで発行したAPIキーに置き換えてください
+API_KEY = os.environ.get("API_KEY")
+
+if not API_KEY:
+    raise ValueError("環境変数 API_KEY が設定されていません")
+
+youtube = build("youtube", "v3", developerKey=API_KEY)
 youtube = build("youtube", "v3", developerKey=API_KEY)
 
 # ---- YouTubeのコメント取得関数 ----
