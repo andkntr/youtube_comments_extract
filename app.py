@@ -250,7 +250,11 @@ def fetch_recent_videos(channel_id: str, max_results: int = 10):
 
 
 
-import statistics
+def format_number(n):
+    try:
+        return f"{int(n):,}"
+    except Exception:
+        return n
 
 @app.route("/channel-health", methods=["GET", "POST"])
 def channel_health():
@@ -261,21 +265,35 @@ def channel_health():
             return "チャンネルが見つかりませんでした"
 
         summary = fetch_channel_summary(channel_id)
+        if not summary:
+            return "チャンネル情報の取得に失敗しました"
+
         videos = fetch_recent_videos(channel_id, max_results=10)
 
-        # 平均値・中央値
+        # 平均・中央値
         views = [v["再生数"] for v in videos if v["再生数"] > 0]
         likes = [v["高評価数"] for v in videos if v["高評価数"] > 0]
-
         stats = {
             "平均再生数": int(statistics.mean(views)) if views else 0,
             "中央値再生数": int(statistics.median(views)) if views else 0,
             "平均いいね率": f"{(statistics.mean([l/v for l, v in zip(likes, views) if v > 0])*100):.2f}%" if views and likes else "N/A"
         }
 
-        return render_template("channel_health.html", summary=summary, videos=videos, stats=stats)
+        # 表示用に数値を整形
+        summary["登録者数_fmt"] = format_number(summary.get("登録者数", 0))
+        summary["総再生回数_fmt"] = format_number(summary.get("総再生回数", 0))
+        summary["総動画数_fmt"] = format_number(summary.get("総動画数", 0))
 
+        return render_template(
+            "channel_health.html",
+            summary=summary,
+            videos=videos,
+            stats=stats
+        )
+
+    # GET の場合
     return render_template("channel_health.html", summary=None, videos=None, stats=None)
+
 
 
 
