@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}YouTubeコメント抽出{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-body p-5">
+                    <h1 class="text-center mb-4">YouTubeコメント抽出</h1>
+                    <p class="text-muted text-center mb-4">
+                        下のフォームにYouTube動画のURLを入力してください。<br>
+                        コメント（返信含む）をまとめてCSVファイルとしてダウンロードできます。
+                    </p>
+                    
+                    <!-- 通常の form を Ajax 化する -->
+                    <form id="commentForm" class="text-center">
+                        <div class="mb-3">
+                            <label for="url" class="form-label fw-bold">YouTube動画URL</label>
+                            <input 
+                                type="url" 
+                                name="url" 
+                                id="url" 
+                                class="form-control form-control-lg" 
+                                placeholder="例：https://www.youtube.com/watch?v=xxxxxx" 
+                                required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                コメントをCSVでダウンロード
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <small class="text-muted">
+                    ※ 取得できるコメント数は動画によって異なります<br>
+                    ※ ダウンロードファイルはUTF-8形式のCSVです
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById("commentForm").addEventListener("submit", async function(e) {
+    e.preventDefault(); // 通常のフォーム送信を止める
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>処理中...';
+
+    const url = document.getElementById("url").value;
+
+    try {
+        // FlaskにPOSTリクエスト
+        const response = await fetch("/comments", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: "url=" + encodeURIComponent(url)
+        });
+
+        if (!response.ok) {
+            throw new Error("サーバーエラーが発生しました");
+        }
+
+        // CSVをBlobで受け取る
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+
+        // ダウンロード用リンクを動的に生成
+        const a = document.createElement("a");
+        a.href = downloadUrl;
+
+        // Flaskのsend_fileで設定されたファイル名をヘッダーから取得
+        const disposition = response.headers.get("Content-Disposition");
+        const match = disposition && disposition.match(/filename\*=UTF-8''(.+)/);
+        a.download = match ? decodeURIComponent(match[1]) : "comments.csv";
+
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        window.URL.revokeObjectURL(downloadUrl);
+
+    } catch (err) {
+        alert("エラー: " + err.message);
+    } finally {
+        // 成功・失敗・キャンセル すべてでボタンを戻す
+        btn.disabled = false;
+        btn.innerHTML = "コメントをCSVでダウンロード";
+    }
+});
+</script>
+{% endblock %}

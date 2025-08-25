@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="text-center">Stock Dashboard</h1>
+    <form method="POST" class="mb-4">
+        <div class="row">
+            <div class="col-md-4">
+                <label for="ticker" class="form-label">Ticker Symbol:</label>
+                <input type="text" class="form-control" id="ticker" name="ticker" placeholder="Enter ticker symbol" required>
+            </div>
+            <div class="col-md-3">
+                <label for="start_date" class="form-label">Start Date:</label>
+                <input type="date" class="form-control" id="start_date" name="start_date">
+            </div>
+            <div class="col-md-3">
+                <label for="end_date" class="form-label">End Date:</label>
+                <input type="date" class="form-control" id="end_date" name="end_date">
+            </div>
+            <div class="col-md-2 align-self-end">
+                <button type="submit" class="btn btn-primary w-100">Analyze</button>
+            </div>
+        </div>
+    </form>
+
+    {% if stock_info %}
+    <h2>基本情報</h2>
+    <table class="table table-bordered">
+        <tr>
+            <th>会社名</th>
+            <td>{{ stock_info.company_name }}</td>
+        </tr>
+        <tr>
+            <th>業界</th>
+            <td>{{ stock_info.sector }}</td>
+        </tr>
+        <tr>
+            <th>時価総額</th>
+            <td>¥{{ stock_info.market_cap }}</td>
+        </tr>
+        <tr>
+            <th>配当率</th>
+            <td>{{ stock_info.dividend_yield }}</td>
+        </tr>
+        <tr>
+            <th>現在の株価</th>
+            <td>¥{{ stock_info.current_price }}</td>
+        </tr>
+        <tr>
+            <th>価格変動</th>
+            <td>{{ "%.2f" | format(stock_info.change) }} ({{ "%.2f" | format(stock_info.change_percent) }}%)</td>
+        </tr>
+    </table>
+    {% endif %}
+
+    {% if candlestick_chart %}
+    <h2>ローソク足チャート</h2>
+    <div>
+        {{ candlestick_chart | safe }}
+    </div>
+    {% endif %}
+
+    {% if mplfinance_chart %}
+    <h2>mplfinance チャート</h2>
+    <div>
+        {{ mplfinance_chart | safe }}
+    </div>
+    {% endif %}
+
+    {% if analysis %}
+    <h2 class="mb-4">Technical Analysis</h2>
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">RSI</h5>
+                    <p class="card-text">{{ analysis.RSI }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">SMA 5</h5>
+                    <p class="card-text">{{ analysis.SMA_5 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">SMA 25</h5>
+                    <p class="card-text">{{ analysis.SMA_25 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">SMA 75</h5>
+                    <p class="card-text">{{ analysis.SMA_75 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12 mt-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Recommendation</h5>
+                    <p class="card-text">{{ analysis.Recommendation }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not stock_data.empty %}
+    <h2>株価データ</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Open</th>
+                <th>High</th>
+                <th>Low</th>
+                <th>Close</th>
+                <th>Volume</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for date, row in stock_data.iterrows() %}
+            <tr>
+                <td>{{ date }}</td>
+                <td>{{ "%.2f" | format(row.Open) }}</td>
+                <td>{{ "%.2f" | format(row.High) }}</td>
+                <td>{{ "%.2f" | format(row.Low) }}</td>
+                <td>{{ "%.2f" | format(row.Close) }}</td>
+                <td>{{ "{:,.0f}".format(row.Volume) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+{% endblock %}

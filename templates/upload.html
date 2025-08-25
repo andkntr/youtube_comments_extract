@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}ファイルアップロード{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <!-- 幅を調整するためにcol-md-8を使用 -->
+    <div class="col-md-11">
+        <div class="card shadow-lg">
+            <div class="card-body">
+                <h1 class="text-center fs-3 mb-4">地図にピンを立ててみようプロジェクト</h1>
+                <p>ファイルをアップロードするだけで、複数の住所を地図 (OpenStreetMap) 上に一括表示します。</p>
+                <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
+                    <h5 class="alert-heading fw-bold">使い方</h5>
+                    <p class="mb-0">* 対応している拡張子は <code>.csv</code> または <code>.xlsx</code> です。</p>
+                    <p class="mb-0">* 1列目に住所を入力してください。</p>
+                    <p class="mb-0">* 都道府県から町名番地まで含めると、より正確にピンを立てられます。</p>
+                </div>
+                <form action="/map" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">ファイルを選択</label>
+                        <input type="file" class="form-control" name="file" id="file" accept=".csv, .xlsx" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">アップロード</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
