@@ -13,11 +13,14 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     projects = [
-        {"name": "ボタン型チャットボット", "description": "多階層の質問を事前にトレーニングし、選択肢を基に回答するチャットボットシステム", "url": "/chatbot_button"},
-        {"name": "自由回答型チャットボット", "description": "質問と回答の組み合わせを事前にトレーニングし、ユーザーが入力した質問に回答するチャットボットシステム", "url": "/chatbot_free"},
-        {"name": "地図ピン", "description": "住所を一括アップロードし、地図上にピンを指すツール", "url": "/map"},
-    ]
+    {
+        "name": "YouTubeコメント抽出",
+        "description": "指定したYouTube動画のコメント（返信含む）をCSVでダウンロードできます。",
+        "url": "/comments"
+    }]
     return render_template("index.html", projects=projects)
+
+
 
 
 """

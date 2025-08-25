@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}HOME{% endblock %}
+{% block title %}ツール一覧{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <h1 class="text-center mb-4">プロジェクト一覧</h1>
-    <div class="row">
+    <h1 class="text-center mb-4">ツール一覧</h1>
+    <div class="row justify-content-center">
         {% for project in projects %}
-        <div class="col-md-3 mb-4">
+        <div class="col-md-6 col-lg-4 mb-4">
             <div class="card shadow-sm h-100 d-flex flex-column">
                 <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">{{ project.name }}</h5>
-                    <p class="card-text flex-grow-1">{{ project.description }}</p>
-                    <a href="{{ project.url }}" class="btn btn-primary mt-auto" target="_blank">詳細を見る</a>
+                    <h5 class="card-title text-primary">{{ project.name }}</h5>
+                    <p class="card-text text-muted flex-grow-1">{{ project.description }}</p>
+                    <a href="{{ project.url }}" class="btn btn-outline-primary mt-auto">使ってみる</a>
                 </div>
             </div>
         </div>
