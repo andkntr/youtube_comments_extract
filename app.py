@@ -36,8 +36,25 @@ youtube = build("youtube", "v3", developerKey=API_KEY)
 
 # ---- YouTubeのコメント取得関数 ----
 def get_video_id(url):
-    match = re.search(r"v=([a-zA-Z0-9_-]{11})", url)
-    return match.group(1) if match else None
+    """
+    YouTube URLや短縮URLから videoId を抽出する
+    """
+    # 1) https://www.youtube.com/watch?v=XXXX
+    m = re.search(r"v=([a-zA-Z0-9_-]{11})", url)
+    if m:
+        return m.group(1)
+
+    # 2) https://youtu.be/XXXX 形式
+    m = re.search(r"youtu\.be/([a-zA-Z0-9_-]{11})", url)
+    if m:
+        return m.group(1)
+
+    # 3) videoId 単体が渡された場合（直接UCや11桁ID）
+    m = re.match(r"^[a-zA-Z0-9_-]{11}$", url)
+    if m:
+        return url
+
+    return None
 
 
 def fetch_all_comments(video_id, max_pages=10):
