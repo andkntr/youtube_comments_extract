@@ -7,7 +7,7 @@ from googleapiclient.discovery import build
 import statistics
 import yt_dlp 
 import tempfile
-from flask import after_this_request, send_file, flash, redirect, url_for
+from flask import after_this_request, send_file, flash, redirect, url_for, Response
 
 app = Flask(__name__)
 
@@ -23,6 +23,38 @@ def index():
     ]
     return render_template("index.html", projects=projects)
 
+
+"""
+robots.txt用
+"""
+@app.route("/robots.txt")
+def robots():
+    lines = [
+        "User-agent: *",
+        "Disallow:",
+        "Sitemap: https://app.akitaken.tech/sitemap.xml"
+    ]
+    return Response("\n".join(lines), mimetype="text/plain")
+
+
+@app.route("/sitemap.xml")
+def sitemap():
+    pages = [
+        {"loc": "https://app.akitaken.tech/"},
+        {"loc": "https://app.akitaken.tech/comments"},
+        {"loc": "https://app.akitaken.tech/channel-health"},
+        {"loc": "https://app.akitaken.tech/download"},
+    ]
+
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    for page in pages:
+        xml += "  <url>\n"
+        xml += f"    <loc>{page['loc']}</loc>\n"
+        xml += "  </url>\n"
+    xml += "</urlset>"
+
+    return Response(xml, mimetype="application/xml")
 
 
 
