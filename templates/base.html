@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+    <meta name="description" content="{% block description %}YouTube動画を高画質(1080p/720p)で無料ダウンロードできるツール。映像＋音声、映像のみ、音声のみの保存に対応。スマホ・PC対応。{% endblock %}">
+    <meta name="keywords" content="{% block keywords %}YouTube, 動画ダウンロード, 無料, 高画質, 1080p, 720p, 音声保存, MP4{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}{% block title %}{% endblock %}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}YouTubeの動画を無料でダウンロードできるオンラインツール。1080p・720p対応、映像＋音声/映像のみ/音声のみの保存可能。{% endblock %}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:image" content="/static/og-image.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}YouTube分析ツール{% endblock %}</title>
