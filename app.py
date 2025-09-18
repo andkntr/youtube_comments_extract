@@ -5,6 +5,9 @@ import csv
 from flask import Flask, request, render_template, send_file
 from googleapiclient.discovery import build
 import statistics
+import yt_dlp 
+import tempfile
+from flask import after_this_request, send_file, flash, redirect, url_for
 
 app = Flask(__name__)
 
@@ -14,8 +17,9 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     projects = [
-        {"name": "YouTubeコメント抽出", "description": "動画のコメント（返信含む）をCSVで出力", "url": "/comments"},
-        {"name": "チャンネル健診", "description": "チャンネルの公開サマリ＋直近動画の統計をCSVで出力", "url": "/channel-health"},
+        {"name": "YouTubeコメント抽出", "description": "YouTubeのURLから、動画のコメント（返信含む）を抽出し、CSVで出力します。", "url": "/comments"},
+        {"name": "YouTubeチャンネル分析", "description": "YouTubeのURLからチャンネルの公開サマリ＋直近動画の統計をCSVで出力します。", "url": "/channel-health"},
+        {"name": "YouTube動画ダウンロード", "description": "YouTubeのURLを入力して解像度を選択し、映像＋音声／映像のみ／音声のみをダウンロードできます。", "url": "/download"},
     ]
     return render_template("index.html", projects=projects)
 
@@ -311,6 +315,109 @@ def channel_health():
     # GET の場合
     return render_template("channel_health.html", summary=None, videos=None, stats=None)
 
+
+# =========================================
+# 動画ダウンロード（API不要）
+# =========================================
+def list_formats(video_url):
+    with yt_dlp.YoutubeDL() as ydl:
+        info = ydl.extract_info(video_url, download=False)
+        formats = info.get("formats", [])
+        results = []
+
+        for f in formats:
+            size = f.get("filesize")
+            size_mb = round(size / 1024 / 1024, 2) if size else "不明"
+
+            # 1. 映像＋音声が両方ある
+            if f.get("vcodec") != "none" and f.get("acodec") != "none":
+                results.append({
+                    "タイプ": "映像＋音声",  # ✅ 表記を変更
+                    "解像度": f.get("resolution"),
+                    "サイズ(MB)": size_mb,
+                    "download_code": f.get("format_id"),
+                })
+            elif f.get("vcodec") != "none" and f.get("acodec") == "none":
+                results.append({
+                    "タイプ": "映像のみ",
+                    "解像度": f.get("resolution"),
+                    "サイズ(MB)": size_mb,
+                    "download_code": f.get("format_id"),
+                })
+            elif f.get("vcodec") == "none" and f.get("acodec") != "none":
+                results.append({
+                    "タイプ": "音声のみ",
+                    "解像度": "音声のみ",
+                    "サイズ(MB)": size_mb,
+                    "download_code": f.get("format_id"),
+                })
+
+        # ✅ 映像＋音声を一番上に
+        results.sort(key=lambda x: 0 if x["タイプ"] == "映像＋音声" else 1)
+        return results
+
+
+
+@app.route("/download", methods=["GET", "POST"])
+def download():
+    formats = None
+    url = None
+    if request.method == "POST":
+        url = request.form.get("url")
+        formats = list_formats(url)
+    return render_template("download.html", formats=formats, url=url)
+
+
+@app.route("/download-video", methods=["POST"])
+def download_video():
+    url = request.form.get("url")
+    format_code = request.form.get("format_code")
+    file_type = request.form.get("file_type")  # ← download.html で hidden input を追加する
+
+    if not url or not format_code:
+        return "url または format_code が足りません", 400
+
+    # 拡張子を決定
+    ext = "mp4"
+    if file_type == "音声のみ":
+        ext = "m4a"
+
+    tmpdir = tempfile.mkdtemp(prefix="yt_")
+    filepath = os.path.join(tmpdir, f"video.{ext}")
+
+    ydl_opts = {
+        "format": format_code,
+        "outtmpl": filepath,   # ファイルパスを指定
+        "quiet": True,
+        "nopart": True,
+    }
+
+    # 映像（＋音声）の場合だけ merge_output_format を設定
+    if ext == "mp4":
+        ydl_opts["merge_output_format"] = "mp4"
+
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=True)
+            title = info.get("title", "video")
+    except Exception as e:
+        return f"ダウンロードに失敗しました: {e}", 500
+
+    @after_this_request
+    def cleanup(response):
+        try:
+            if os.path.exists(filepath):
+                os.remove(filepath)
+            os.rmdir(tmpdir)
+        except Exception as e:
+            app.logger.error(f"Cleanup failed: {e}")
+        return response
+
+    return send_file(
+        filepath,
+        as_attachment=True,
+        download_name=f"{sanitize_filename(title)}.{ext}"
+    )
 
 
 

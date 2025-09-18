@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}YouTube動画ダウンロードツール - 高画質対応 (720p / 1080p){% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <!-- ページタイトル -->
+  <h1 class="text-center mb-4">YouTube動画ダウンロードツール</h1>
+  <p class="text-center text-muted mb-5">
+    無料で使えるYouTube動画ダウンロードツールです。  
+    映像＋音声、映像のみ、音声のみを選んでPCやスマホに保存できます。  
+    1080p・720pなどの解像度も選択可能です。
+  </p>
+
+  <!-- URL入力フォーム -->
+  <form method="POST" action="/download" class="mb-5">
+    <div class="input-group input-group-lg">
+      <input type="text" class="form-control" name="url"
+             placeholder="YouTube動画URLを入力してください (例: https://www.youtube.com/watch?v=XXXXX)" required>
+      <button class="btn btn-primary" type="submit">分析してフォーマットを表示</button>
+    </div>
+  </form>
+
+  {% if formats %}
+  <!-- フォーマット一覧 -->
+  <h2 class="mb-4">利用可能なダウンロードフォーマット</h2>
+  <div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th scope="col">タイプ</th>
+          <th scope="col">解像度</th>
+          <th scope="col">サイズ (MB)</th>
+          <th scope="col">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in formats %}
+        <tr>
+          <!-- タイプ -->
+          <td>
+            {% if f["タイプ"] == "映像＋音声" %}
+              <span class="badge bg-success">{{ f["タイプ"] }}</span>
+            {% elif f["タイプ"] == "映像のみ" %}
+              <span class="badge bg-info text-dark">{{ f["タイプ"] }}</span>
+            {% else %}
+              <span class="badge bg-secondary">{{ f["タイプ"] }}</span>
+            {% endif %}
+          </td>
+
+          <!-- 解像度 -->
+          <td>{{ f["解像度"] }}</td>
+
+          <!-- サイズ -->
+          <td>{{ f["サイズ(MB)"] }}</td>
+
+          <!-- ダウンロードボタン -->
+          <td>
+            <form method="POST" action="/download-video" class="d-inline">
+              <input type="hidden" name="url" value="{{ url }}">
+              <input type="hidden" name="format_code" value="{{ f.download_code }}">
+              <input type="hidden" name="file_type" value="{{ f.タイプ }}">
+              <button class="btn btn-success btn-sm" type="submit">
+                ダウンロード
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- SEO向け説明文 -->
+  <section class="mt-5">
+    <h2 class="h4">YouTube動画ダウンロードツールの特徴</h2>
+    <ul>
+      <li>映像＋音声をまとめて保存（高画質 720p / 1080p に対応）</li>
+      <li>映像だけ、音声だけの保存にも対応</li>
+      <li>サイズを事前に確認できるので、容量の調整が簡単</li>
+      <li>スマホ・PC 両対応</li>
+    </ul>
+  </section>
+
+  <section class="mt-4">
+    <h2 class="h4">ご利用方法</h2>
+    <ol>
+      <li>YouTube動画のURLをコピーして上のフォームに貼り付ける</li>
+      <li>希望の解像度・フォーマットを選択</li>
+      <li>「ダウンロード」ボタンを押す</li>
+    </ol>
+    <p class="text-muted small">※ご利用は個人の範囲で行い、著作権法を遵守してください。</p>
+  </section>
+</div>
+{% endblock %}
