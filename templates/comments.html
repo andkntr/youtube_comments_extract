@@ -1,23 +1,25 @@
 {% extends "base.html" %}
 
-{% block title %}YouTubeコメント抽出{% endblock %}
+{% block title %}YouTubeコメント抽出ツール｜コメントをCSVで一括保存・ダウンロード{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8 col-md-10">
+
+            <!-- メインカード -->
             <div class="card shadow-lg border-0 rounded-3">
                 <div class="card-body p-5">
-                    <h1 class="text-center mb-4">YouTubeコメント抽出</h1>
+                    <h1 class="text-center mb-4">YouTubeコメント抽出ツール（CSV保存対応）</h1>
                     <p class="text-muted text-center mb-4">
-                        下のフォームにYouTube動画のURLを入力してください。<br>
-                        コメント（返信含む）をまとめてCSVファイルとしてダウンロードできます。
+                        YouTube動画のコメントや返信を一括で抽出し、CSVファイルとしてダウンロードできます。<br>
+                        CSVはExcelやGoogleスプレッドシートでそのまま開けるので、分析やアンケート集計に最適です。
                     </p>
                     
-                    <!-- 通常の form を Ajax 化する -->
+                    <!-- 入力フォーム -->
                     <form id="commentForm" class="text-center">
                         <div class="mb-3">
-                            <label for="url" class="form-label fw-bold">YouTube動画URL</label>
+                            <label for="url" class="form-label fw-bold">YouTube動画URLを入力</label>
                             <input 
                                 type="url" 
                                 name="url" 
@@ -34,12 +36,71 @@
                     </form>
                 </div>
             </div>
+
+            <!-- 注意書き -->
             <div class="text-center mt-4">
                 <small class="text-muted">
                     ※ 取得できるコメント数は動画によって異なります<br>
-                    ※ ダウンロードファイルはUTF-8形式のCSVです
+                    ※ ダウンロードファイルはUTF-8形式のCSVです（Excel・スプレッドシート対応）
                 </small>
             </div>
+
+            <!-- 使い方 -->
+<div class="mt-5">
+  <h2 class="h4 mb-4 text-center">使い方</h2>
+  <div class="row text-center">
+    <div class="col-md-4 mb-4">
+      <div class="p-4 border rounded-3 shadow-sm h-100">
+        <div class="fs-1 text-primary mb-2">①</div>
+        <p class="mb-0">YouTube動画のURLをコピー</p>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="p-4 border rounded-3 shadow-sm h-100">
+        <div class="fs-1 text-primary mb-2">②</div>
+        <p class="mb-0">フォームに貼り付けてボタンをクリック</p>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="p-4 border rounded-3 shadow-sm h-100">
+        <div class="fs-1 text-primary mb-2">③</div>
+        <p class="mb-0">数秒でコメントCSVをダウンロード</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 活用シーン -->
+<div class="mt-5">
+  <h2 class="h4 mb-4 text-center">活用シーン</h2>
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="p-4 bg-light rounded-3 h-100 shadow-sm">
+        <h3 class="h6 text-primary">📊 マーケティング分析</h3>
+        <p class="mb-0">視聴者の声を分析して、コンテンツ改善や商品マーケティングに活かせます。</p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="p-4 bg-light rounded-3 h-100 shadow-sm">
+        <h3 class="h6 text-primary">📝 研究・レポート</h3>
+        <p class="mb-0">学術研究や論文、プレゼン資料のデータとして活用できます。</p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="p-4 bg-light rounded-3 h-100 shadow-sm">
+        <h3 class="h6 text-primary">🤖 AI活用</h3>
+        <p class="mb-0">コメントをテキストマイニングやAI解析にかけ、ネガポジ分析やトレンド抽出に利用可能。</p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="p-4 bg-light rounded-3 h-100 shadow-sm">
+        <h3 class="h6 text-primary">👥 コミュニティ管理</h3>
+        <p class="mb-0">アンケート代わりに、コミュニティの反応を整理・保存して改善に役立てられます。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
         </div>
     </div>
 </div>
@@ -83,6 +144,9 @@ document.getElementById("commentForm").addEventListener("submit", async function
         a.remove();
 
         window.URL.revokeObjectURL(downloadUrl);
+
+        // ✅ 完了通知
+        alert("コメントのダウンロードが完了しました ✅");
 
     } catch (err) {
         alert("エラー: " + err.message);

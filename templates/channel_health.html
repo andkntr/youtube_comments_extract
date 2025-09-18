@@ -1,118 +1,84 @@
 {% extends "base.html" %}
-{% block title %}チャンネル分析{% endblock %}
+
+{% block title %}YouTubeチャンネル分析ツール（無料） - 登録者数・再生数をチェック{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-  <h1 class="text-center mb-4">YouTubeチャンネル分析</h1>
+
+  <!-- H1: メインキーワード -->
+  <h1 class="text-center mb-4">
+    YouTubeチャンネル分析ツール（無料）
+  </h1>
+
+  <!-- 導入文: SEOに強い説明 -->
+  <p class="text-center text-muted mb-5 lead">
+    チャンネルの登録者数・総再生回数・動画ごとの人気傾向を瞬時にチェックできます。<br>
+    URLまたは@ハンドルを入力するだけで、チャンネルの健診レポートを自動生成！
+  </p>
 
   <!-- 入力フォーム -->
-  <form method="POST" class="mb-5">
-    <div class="input-group">
-      <input type="text" class="form-control" name="channel"
-             placeholder="チャンネルURL / @ハンドル / UC ID" required>
-      <button class="btn btn-primary" type="submit">分析する</button>
-    </div>
-  </form>
-
-  {% if summary %}
-  <!-- サマリカード -->
-  <div class="card mb-4 shadow-sm">
-    <div class="card-body">
-      <h4 class="card-title">{{ summary["チャンネル名"] }}</h4>
-      <p class="text-muted">{{ summary["説明"] }}</p>
-      <div class="row">
-        <div class="col-md-4">登録者数: {{ summary["登録者数_fmt"] }}</div>
-        <div class="col-md-4">総再生回数: {{ summary["総再生回数_fmt"] }}</div>
-        <div class="col-md-4">動画数: {{ summary["総動画数_fmt"] }}</div>
-      </div>
-      <div class="row mt-2">
-        <div class="col-md-4">国: {{ summary["国"] }}</div>
-        <div class="col-md-4">開設日: {{ summary["開設日"][:10] }}</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 統計カード -->
-  <div class="row mb-4 text-center">
-    <div class="col-md-4">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5>平均再生数</h5>
-          <p class="fs-4">{{ stats["平均再生数"] }}</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5>中央値再生数</h5>
-          <p class="fs-4">{{ stats["中央値再生数"] }}</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h5>平均いいね率</h5>
-          <p class="fs-4">{{ stats["平均いいね率"] }}</p>
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+      <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-body p-5">
+          <h2 class="h4 text-center mb-4">🔍 チャンネルURLを入力してください</h2>
+          <form method="POST">
+            <div class="input-group input-group-lg">
+              <input 
+                type="text" 
+                class="form-control" 
+                name="channel" 
+                placeholder="例：https://www.youtube.com/@GoogleJapan または UCxxxxxxxx" 
+                required>
+              <button class="btn btn-primary" type="submit">
+                📊 分析する
+              </button>
+            </div>
+          </form>
+          <p class="text-muted small mt-3 text-center">
+            ※ 公開されているデータのみを利用して分析します。<br>
+            ※ 入力情報は保存されませんのでご安心ください。
+          </p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- グラフ -->
-  <h3 class="mb-3">直近動画の推移</h3>
-  <div id="viewsChart"></div>
+  <!-- H2: このツールでわかること -->
+  <section class="mt-5">
+    <h2 class="text-center mb-4">このツールでできること</h2>
+    <div class="row text-center">
+      <div class="col-md-4 mb-4">
+        <div class="p-4 bg-light rounded shadow-sm h-100">
+          <h3 class="h5">📈 チャンネル概要</h3>
+          <p class="text-muted">登録者数、総再生回数、動画数など基本情報をまとめて表示</p>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="p-4 bg-light rounded shadow-sm h-100">
+          <h3 class="h5">🎥 動画ごとの統計</h3>
+          <p class="text-muted">直近動画の再生数・高評価数・コメント数を一覧化</p>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="p-4 bg-light rounded shadow-sm h-100">
+          <h3 class="h5">📊 推移グラフ</h3>
+          <p class="text-muted">直近動画の再生数や高評価数のトレンドをグラフで可視化</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <!-- 動画一覧 -->
-  <h3 class="mt-5 mb-3">直近動画一覧</h3>
-  <table class="table table-striped table-hover">
-    <thead>
-      <tr>
-        <th>公開日</th>
-        <th>サムネイル</th>
-        <th>タイトル</th>
-        <th>再生数</th>
-        <th>高評価数</th>
-        <th>コメント数</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for v in videos %}
-      <tr>
-        <td>{{ v["公開日"][:10] }}</td>
-        <td><img src="{{ v['サムネイル'] }}" width="120"></td>
-        <td><a href="{{ v['URL'] }}" target="_blank">{{ v["タイトル"] }}</a></td>
-        <td>{{ v["再生数"]|int }}</td>
-        <td>{{ v["高評価数"]|int }}</td>
-        <td>{{ v["コメント数"]|int }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% endif %}
+  <!-- H2: 活用シーン -->
+  <section class="mt-5">
+    <h2 class="text-center mb-4">活用シーン</h2>
+    <ul class="list-group list-group-flush shadow-sm">
+      <li class="list-group-item">✅ 自分のチャンネルの成長を分析したいYouTuber</li>
+      <li class="list-group-item">✅ 他のチャンネルと比較して競合分析したいマーケター</li>
+      <li class="list-group-item">✅ 案件やコラボ先の実績をチェックしたい企業担当者</li>
+    </ul>
+  </section>
+
 </div>
 
-<!-- Plotly CDN -->
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-{% if videos %}
-<script>
-const videos = {{ videos|tojson }};
-const x = videos.map(v => v["公開日"].slice(0,10)).reverse();
-const views = videos.map(v => v["再生数"]).reverse();
-const likes = videos.map(v => v["高評価数"]).reverse();
-
-const trace1 = {x:x, y:views, type:'bar', name:'再生数'};
-const trace2 = {x:x, y:likes, type:'line', name:'高評価数', yaxis:'y2'};
-
-const layout = {
-  title: '直近動画の再生数と高評価数',
-  xaxis: {title: '公開日'},
-  yaxis: {title: '再生数'},
-  yaxis2: {title: '高評価数', overlaying:'y', side:'right'}
-};
-
-Plotly.newPlot('viewsChart', [trace1, trace2], layout);
-</script>
-{% endif %}
 {% endblock %}

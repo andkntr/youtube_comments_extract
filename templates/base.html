@@ -1,59 +1,86 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Youtube分析ツール{% endblock %}</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef); /* 背景をグラデーションに */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .navbar-brand {
-            font-weight: bold;
-            font-size: 1.5rem;
-        }
-        .btn-primary:hover {
-            background-color: #0056b3;
-        }
-        #footer {
-            background-color: #343a40;
-            color: white;
-            padding: 10px 0;
-        }
-    </style>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8MW1SS2JPW"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-
-        gtag('config', 'G-8MW1SS2JPW');
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}YouTube分析ツール{% endblock %}</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .navbar-brand {
+      font-weight: bold;
+      font-size: 1.5rem;
+    }
+    .btn-primary:hover {
+      background-color: #0056b3;
+    }
+    #footer {
+      background-color: #343a40;
+      color: white;
+      padding: 15px 0;
+    }
+    .breadcrumb {
+      background: transparent;
+      padding: 0;
+      margin-bottom: 1rem;
+    }
+  </style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8MW1SS2JPW"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-8MW1SS2JPW');
+  </script>
 </head>
 <body>
-    <!-- ナビゲーションバー -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-        <div class="container">
-            <a class="navbar-brand" href="/">Youtube分析ツール</a>
-        </div>
-    </nav>
-
-    <!-- コンテンツ -->
-    <div class="container py-5">
-        {% block content %}
-        {% endblock %}
+  <!-- ナビゲーションバー -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+    <div class="container">
+      <a class="navbar-brand" href="/">YouTube分析ツール</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="/">ホーム</a></li>
+          <li class="nav-item"><a class="nav-link" href="/comments">コメント抽出</a></li>
+          <li class="nav-item"><a class="nav-link" href="/channel-health">チャンネル分析</a></li>
+          <li class="nav-item"><a class="nav-link" href="/download">動画ダウンロード</a></li>
+        </ul>
+      </div>
     </div>
+  </nav>
 
-    <!-- フッター -->
-    <footer id="footer" class="text-center mt-5">
-        <p>&copy; 2024 Youtube分析ツール. All Rights Reserved.</p>
-    </footer>
+  <!-- パンくず -->
+  <div class="container">
+    {% block breadcrumb %}
+    <!-- 各ページで上書き可能 -->
+    {% endblock %}
+  </div>
 
-    <!-- Bootstrap Bundle JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- コンテンツ -->
+  <div class="container py-5">
+    {% block content %}
+    {% endblock %}
+  </div>
+
+  <!-- フッター -->
+  <footer id="footer" class="text-center mt-5">
+    <p>&copy; 2024 YouTube分析ツール. All Rights Reserved.</p>
+    <div>
+      <a href="/comments" class="text-white me-3">コメント抽出</a>
+      <a href="/channel-health" class="text-white me-3">チャンネル分析</a>
+      <a href="/download" class="text-white">動画ダウンロード</a>
+    </div>
+  </footer>
+
+  <!-- Bootstrap Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
